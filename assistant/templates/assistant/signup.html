@@ -1,0 +1,744 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sign Up - JARVIS Assistant</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            --secondary-gradient: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            --accent-color: #4f46e5;
+            --success-color: #10b981;
+            --warning-color: #f59e0b;
+            --danger-color: #ef4444;
+            --glass-bg: rgba(255, 255, 255, 0.1);
+            --glass-border: rgba(255, 255, 255, 0.2);
+            --shadow: 0 8px 32px rgba(31, 38, 135, 0.37);
+            --text-primary: #1f2937;
+            --text-secondary: #6b7280;
+            --bg-primary: #f8fafc;
+            --bg-secondary: #ffffff;
+            --border-color: #e5e7eb;
+        }
+
+        [data-theme="dark"] {
+            --text-primary: #f9fafb;
+            --text-secondary: #d1d5db;
+            --bg-primary: #0f172a;
+            --bg-secondary: #1e293b;
+            --border-color: #374151;
+            --glass-bg: rgba(0, 0, 0, 0.2);
+            --glass-border: rgba(255, 255, 255, 0.1);
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            overflow-x: hidden;
+            min-height: 100vh;
+        }
+
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: radial-gradient(circle at 20% 80%, rgba(120, 119, 198, 0.3) 0%, transparent 50%),
+                        radial-gradient(circle at 80% 20%, rgba(255, 119, 198, 0.3) 0%, transparent 50%),
+                        radial-gradient(circle at 40% 40%, rgba(120, 219, 255, 0.2) 0%, transparent 50%);
+            pointer-events: none;
+            z-index: -1;
+        }
+
+        .floating-particles {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: -1;
+        }
+
+        .particle {
+            position: absolute;
+            width: 4px;
+            height: 4px;
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            border-radius: 50%;
+            animation: float 6s infinite linear;
+            opacity: 0.6;
+        }
+
+        @keyframes float {
+            0% { transform: translateY(100vh) rotate(0deg); opacity: 0; }
+            10% { opacity: 0.6; }
+            90% { opacity: 0.6; }
+            100% { transform: translateY(-100px) rotate(360deg); opacity: 0; }
+        }
+
+        .signup-container {
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 2rem;
+            position: relative;
+        }
+
+        .signup-card {
+            width: 100%;
+            max-width: 480px;
+            background: var(--glass-bg);
+            backdrop-filter: blur(20px);
+            border: 1px solid var(--glass-border);
+            border-radius: 24px;
+            padding: 3rem;
+            box-shadow: var(--shadow);
+            text-align: center;
+            animation: fadeInUp 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .signup-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.1), transparent);
+            animation: shimmer 3s infinite;
+        }
+
+        @keyframes shimmer {
+            0% { left: -100%; }
+            100% { left: 100%; }
+        }
+
+        @keyframes fadeInUp {
+            from { opacity: 0; transform: translateY(50px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .signup-header {
+            margin-bottom: 2rem;
+        }
+
+        .signup-icon {
+            font-size: 3.5rem;
+            margin-bottom: 0.75rem;
+            animation: glow 2s ease-in-out infinite alternate;
+            display: block;
+        }
+
+        @keyframes glow {
+            from { text-shadow: 0 0 20px rgba(102, 126, 234, 0.5); }
+            to { text-shadow: 0 0 30px rgba(118, 75, 162, 0.8); }
+        }
+
+        .signup-title {
+            font-size: 2.2rem;
+            font-weight: 800;
+            background: var(--primary-gradient);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 0.4rem;
+        }
+
+        .signup-subtitle {
+            color: var(--text-secondary);
+            font-size: 0.95rem;
+            font-weight: 500;
+        }
+
+        .signup-form {
+            text-align: left;
+        }
+
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1rem;
+        }
+
+        .form-group {
+            margin-bottom: 1.2rem;
+            position: relative;
+        }
+
+        .form-label {
+            display: block;
+            margin-bottom: 0.4rem;
+            font-weight: 600;
+            color: var(--text-primary);
+            font-size: 0.9rem;
+        }
+
+        .input-wrapper {
+            position: relative;
+        }
+
+        .form-input {
+            width: 100%;
+            padding: 0.85rem 2.8rem 0.85rem 1.2rem;
+            border: 2px solid var(--border-color);
+            border-radius: 12px;
+            background: var(--bg-secondary);
+            color: var(--text-primary);
+            font-size: 0.95rem;
+            transition: all 0.3s ease;
+            outline: none;
+        }
+
+        .form-input:focus {
+            border-color: var(--accent-color);
+            box-shadow: 0 0 0 4px rgba(79, 70, 229, 0.1);
+            transform: translateY(-1px);
+        }
+
+        .form-input.input-error {
+            border-color: var(--danger-color);
+            box-shadow: 0 0 0 4px rgba(239, 68, 68, 0.1);
+        }
+
+        .form-input.input-success {
+            border-color: var(--success-color);
+            box-shadow: 0 0 0 4px rgba(16, 185, 129, 0.1);
+        }
+
+        .form-input::placeholder {
+            color: var(--text-secondary);
+            opacity: 0.7;
+        }
+
+        .input-icon {
+            position: absolute;
+            right: 1rem;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--text-secondary);
+            font-size: 1.1rem;
+            pointer-events: none;
+        }
+
+        .password-toggle {
+            position: absolute;
+            right: 0.8rem;
+            top: 50%;
+            transform: translateY(-50%);
+            background: none;
+            border: none;
+            color: var(--text-secondary);
+            cursor: pointer;
+            font-size: 1.1rem;
+            padding: 0.2rem;
+            border-radius: 4px;
+            transition: all 0.3s ease;
+        }
+
+        .password-toggle:hover {
+            color: var(--accent-color);
+            background: rgba(79, 70, 229, 0.1);
+        }
+
+        .field-error {
+            color: var(--danger-color);
+            font-size: 0.8rem;
+            margin-top: 0.3rem;
+            display: none;
+            animation: fadeIn 0.3s ease;
+        }
+
+        .field-error.visible {
+            display: block;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(-4px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .password-strength {
+            margin-top: 0.5rem;
+            display: none;
+        }
+
+        .password-strength.visible {
+            display: block;
+        }
+
+        .strength-bar {
+            height: 4px;
+            border-radius: 2px;
+            background: var(--border-color);
+            overflow: hidden;
+            margin-bottom: 0.25rem;
+        }
+
+        .strength-fill {
+            height: 100%;
+            border-radius: 2px;
+            transition: all 0.4s ease;
+            width: 0%;
+        }
+
+        .strength-text {
+            font-size: 0.75rem;
+            font-weight: 600;
+        }
+
+        .error-message {
+            background: rgba(239, 68, 68, 0.1);
+            color: var(--danger-color);
+            padding: 0.9rem 1rem;
+            border-radius: 12px;
+            margin-bottom: 1.2rem;
+            border-left: 4px solid var(--danger-color);
+            font-size: 0.9rem;
+            animation: shake 0.5s ease-in-out;
+            text-align: left;
+        }
+
+        .error-message ul {
+            margin: 0.3rem 0 0 1rem;
+            padding: 0;
+        }
+
+        .error-message li {
+            margin-bottom: 0.2rem;
+        }
+
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-5px); }
+            75% { transform: translateX(5px); }
+        }
+
+        .signup-btn {
+            width: 100%;
+            padding: 1rem 2rem;
+            background: var(--primary-gradient);
+            color: white;
+            border: none;
+            border-radius: 12px;
+            font-size: 1.05rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+            overflow: hidden;
+            margin-bottom: 1.2rem;
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        .signup-btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+            transition: left 0.5s;
+        }
+
+        .signup-btn:hover::before { left: 100%; }
+
+        .signup-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 6px 20px rgba(102, 126, 234, 0.6);
+        }
+
+        .signup-btn:active { transform: translateY(-1px); }
+
+        .signup-btn:disabled {
+            opacity: 0.7;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .loading-spinner {
+            display: inline-block;
+            width: 18px;
+            height: 18px;
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            border-radius: 50%;
+            border-top-color: white;
+            animation: spin 1s ease-in-out infinite;
+            margin-right: 0.5rem;
+            vertical-align: middle;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .login-link {
+            text-align: center;
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+        }
+
+        .login-link a {
+            color: var(--accent-color);
+            text-decoration: none;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+
+        .login-link a:hover {
+            color: var(--text-primary);
+            text-shadow: 0 0 8px rgba(79, 70, 229, 0.5);
+        }
+
+        .divider {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            margin: 0.5rem 0 1rem;
+            color: var(--text-secondary);
+            font-size: 0.85rem;
+        }
+
+        .divider::before,
+        .divider::after {
+            content: '';
+            flex: 1;
+            height: 1px;
+            background: var(--border-color);
+        }
+
+        .theme-toggle {
+            position: fixed;
+            top: 2rem;
+            right: 2rem;
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            background: var(--glass-bg);
+            backdrop-filter: blur(20px);
+            border: 1px solid var(--glass-border);
+            color: var(--text-primary);
+            font-size: 1.5rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            z-index: 100;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .theme-toggle:hover {
+            transform: rotate(180deg) scale(1.1);
+            box-shadow: var(--shadow);
+        }
+
+        @media (max-width: 768px) {
+            .signup-container { padding: 1rem; }
+            .signup-card { padding: 2rem; max-width: 380px; }
+            .signup-title { font-size: 1.8rem; }
+            .signup-icon { font-size: 3rem; }
+            .form-row { grid-template-columns: 1fr; gap: 0; }
+            .theme-toggle { top: 1rem; right: 1rem; width: 50px; height: 50px; font-size: 1.2rem; }
+        }
+    </style>
+</head>
+<body>
+    <div class="floating-particles" id="particles"></div>
+
+    <button class="theme-toggle" id="theme-toggle">🌙</button>
+
+    <div class="signup-container">
+        <div class="signup-card">
+            <div class="signup-header">
+                <span class="signup-icon">🤖</span>
+                <h1 class="signup-title">Join JARVIS</h1>
+                <p class="signup-subtitle">Create your virtual assistant account</p>
+            </div>
+
+            {% if errors %}
+            <div class="error-message">
+                <strong>⚠️ Please fix the following:</strong>
+                <ul>
+                    {% for error in errors %}
+                    <li>{{ error }}</li>
+                    {% endfor %}
+                </ul>
+            </div>
+            {% endif %}
+
+            <form class="signup-form" method="POST" action="{% url 'signup' %}" id="signup-form" novalidate>
+                {% csrf_token %}
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label class="form-label" for="first_name">First Name</label>
+                        <div class="input-wrapper">
+                            <input type="text" class="form-input" id="first_name" name="first_name"
+                                   placeholder="John" value="{{ form_data.first_name|default:'' }}" autocomplete="given-name">
+                            <span class="input-icon">✏️</span>
+                        </div>
+                        <span class="field-error" id="first_name-error"></span>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label" for="last_name">Last Name</label>
+                        <div class="input-wrapper">
+                            <input type="text" class="form-input" id="last_name" name="last_name"
+                                   placeholder="Doe" value="{{ form_data.last_name|default:'' }}" autocomplete="family-name">
+                            <span class="input-icon">✏️</span>
+                        </div>
+                        <span class="field-error" id="last_name-error"></span>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label" for="username">Username <span style="color: var(--danger-color)">*</span></label>
+                    <div class="input-wrapper">
+                        <input type="text" class="form-input" id="username" name="username"
+                               placeholder="your_username" value="{{ form_data.username|default:'' }}"
+                               required autocomplete="username">
+                        <span class="input-icon" id="username-icon">👤</span>
+                    </div>
+                    <span class="field-error" id="username-error"></span>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label" for="email">Email Address <span style="color: var(--danger-color)">*</span></label>
+                    <div class="input-wrapper">
+                        <input type="email" class="form-input" id="email" name="email"
+                               placeholder="you@example.com" value="{{ form_data.email|default:'' }}"
+                               required autocomplete="email">
+                        <span class="input-icon" id="email-icon">📧</span>
+                    </div>
+                    <span class="field-error" id="email-error"></span>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label" for="password1">Password <span style="color: var(--danger-color)">*</span></label>
+                    <div class="input-wrapper">
+                        <input type="password" class="form-input" id="password1" name="password1"
+                               placeholder="Create a strong password" required autocomplete="new-password">
+                        <button type="button" class="password-toggle" id="pw1-toggle">👁️</button>
+                    </div>
+                    <div class="password-strength" id="pw-strength">
+                        <div class="strength-bar">
+                            <div class="strength-fill" id="strength-fill"></div>
+                        </div>
+                        <span class="strength-text" id="strength-text"></span>
+                    </div>
+                    <span class="field-error" id="password1-error"></span>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label" for="password2">Confirm Password <span style="color: var(--danger-color)">*</span></label>
+                    <div class="input-wrapper">
+                        <input type="password" class="form-input" id="password2" name="password2"
+                               placeholder="Repeat your password" required autocomplete="new-password">
+                        <button type="button" class="password-toggle" id="pw2-toggle">👁️</button>
+                    </div>
+                    <span class="field-error" id="password2-error"></span>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label" for="timezone">Timezone</label>
+                    <div class="input-wrapper">
+                        <select class="form-input" id="timezone" name="timezone" style="padding-right: 2.8rem; appearance: none; cursor: pointer;">
+                            <option value="Asia/Karachi" {% if not form_data.timezone or form_data.timezone == 'Asia/Karachi' %}selected{% endif %}>Asia/Karachi (PKT)</option>
+                            <option value="UTC" {% if form_data.timezone == 'UTC' %}selected{% endif %}>UTC</option>
+                            <option value="America/New_York" {% if form_data.timezone == 'America/New_York' %}selected{% endif %}>America/New_York (EST)</option>
+                            <option value="America/Los_Angeles" {% if form_data.timezone == 'America/Los_Angeles' %}selected{% endif %}>America/Los_Angeles (PST)</option>
+                            <option value="Europe/London" {% if form_data.timezone == 'Europe/London' %}selected{% endif %}>Europe/London (GMT)</option>
+                            <option value="Asia/Dubai" {% if form_data.timezone == 'Asia/Dubai' %}selected{% endif %}>Asia/Dubai (GST)</option>
+                            <option value="Asia/Kolkata" {% if form_data.timezone == 'Asia/Kolkata' %}selected{% endif %}>Asia/Kolkata (IST)</option>
+                        </select>
+                        <span class="input-icon">🌍</span>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label" for="whatsapp_number">WhatsApp Number <span style="color: var(--text-secondary); font-weight: 400;">(optional)</span></label>
+                    <div class="input-wrapper">
+                        <input type="tel" class="form-input" id="whatsapp_number" name="whatsapp_number"
+                               placeholder="+923001234567" value="{{ form_data.whatsapp_number|default:'' }}"
+                               autocomplete="tel">
+                        <span class="input-icon">📱</span>
+                    </div>
+                    <span class="field-error" id="whatsapp_number-error"></span>
+                </div>
+
+                <button type="submit" class="signup-btn" id="signup-btn">
+                    🚀 Create Account
+                </button>
+            </form>
+
+            <div class="divider">or</div>
+
+            <div class="login-link">
+                Already have an account? <a href="{% url 'login' %}">Sign in to JARVIS</a>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Particles
+        function createParticles() {
+            const particles = document.getElementById('particles');
+            for (let i = 0; i < 20; i++) {
+                const particle = document.createElement('div');
+                particle.className = 'particle';
+                particle.style.left = Math.random() * 100 + '%';
+                particle.style.animationDelay = Math.random() * 6 + 's';
+                particle.style.animationDuration = (Math.random() * 3 + 3) + 's';
+                particles.appendChild(particle);
+            }
+        }
+
+        // Theme Toggle
+        const themeToggle = document.getElementById('theme-toggle');
+        function toggleTheme() {
+            const isDark = document.body.getAttribute('data-theme') === 'dark';
+            document.body.setAttribute('data-theme', isDark ? '' : 'dark');
+            themeToggle.textContent = isDark ? '🌙' : '🌞';
+        }
+        themeToggle.addEventListener('click', toggleTheme);
+
+        // Password toggles
+        function setupPasswordToggle(toggleId, inputId) {
+            document.getElementById(toggleId).addEventListener('click', () => {
+                const input = document.getElementById(inputId);
+                const toggle = document.getElementById(toggleId);
+                const isPassword = input.type === 'password';
+                input.type = isPassword ? 'text' : 'password';
+                toggle.textContent = isPassword ? '🙈' : '👁️';
+            });
+        }
+        setupPasswordToggle('pw1-toggle', 'password1');
+        setupPasswordToggle('pw2-toggle', 'password2');
+
+        // Password strength meter
+        const password1 = document.getElementById('password1');
+        const strengthBar = document.getElementById('pw-strength');
+        const strengthFill = document.getElementById('strength-fill');
+        const strengthText = document.getElementById('strength-text');
+
+        password1.addEventListener('input', () => {
+            const val = password1.value;
+            if (!val) {
+                strengthBar.classList.remove('visible');
+                return;
+            }
+            strengthBar.classList.add('visible');
+
+            let score = 0;
+            if (val.length >= 8) score++;
+            if (val.length >= 12) score++;
+            if (/[A-Z]/.test(val)) score++;
+            if (/[0-9]/.test(val)) score++;
+            if (/[^A-Za-z0-9]/.test(val)) score++;
+
+            const levels = [
+                { label: 'Very Weak', color: '#ef4444', width: '20%' },
+                { label: 'Weak',      color: '#f97316', width: '40%' },
+                { label: 'Fair',      color: '#f59e0b', width: '60%' },
+                { label: 'Strong',    color: '#10b981', width: '80%' },
+                { label: 'Very Strong', color: '#059669', width: '100%' },
+            ];
+            const level = levels[Math.min(score, 4)];
+            strengthFill.style.width = level.width;
+            strengthFill.style.background = level.color;
+            strengthText.textContent = level.label;
+            strengthText.style.color = level.color;
+        });
+
+        // Confirm password live check
+        const password2 = document.getElementById('password2');
+        password2.addEventListener('input', () => {
+            const err = document.getElementById('password2-error');
+            if (password2.value && password2.value !== password1.value) {
+                err.textContent = 'Passwords do not match.';
+                err.classList.add('visible');
+                password2.classList.add('input-error');
+                password2.classList.remove('input-success');
+            } else if (password2.value) {
+                err.classList.remove('visible');
+                password2.classList.remove('input-error');
+                password2.classList.add('input-success');
+            } else {
+                err.classList.remove('visible');
+                password2.classList.remove('input-error', 'input-success');
+            }
+        });
+
+        // Username availability hint (client-side length check only)
+        const usernameInput = document.getElementById('username');
+        usernameInput.addEventListener('input', () => {
+            const err = document.getElementById('username-error');
+            const val = usernameInput.value.trim();
+            if (val && val.length < 3) {
+                err.textContent = 'Username must be at least 3 characters.';
+                err.classList.add('visible');
+                usernameInput.classList.add('input-error');
+            } else if (val && !/^[a-zA-Z0-9_]+$/.test(val)) {
+                err.textContent = 'Only letters, numbers, and underscores allowed.';
+                err.classList.add('visible');
+                usernameInput.classList.add('input-error');
+            } else {
+                err.classList.remove('visible');
+                usernameInput.classList.remove('input-error');
+            }
+        });
+
+        // WhatsApp format hint
+        const waInput = document.getElementById('whatsapp_number');
+        waInput.addEventListener('input', () => {
+            const err = document.getElementById('whatsapp_number-error');
+            const val = waInput.value.trim();
+            if (val && !/^\+\d{7,15}$/.test(val)) {
+                err.textContent = 'Use E.164 format, e.g., +923001234567';
+                err.classList.add('visible');
+                waInput.classList.add('input-error');
+            } else {
+                err.classList.remove('visible');
+                waInput.classList.remove('input-error');
+            }
+        });
+
+        // Submit loading state
+        document.getElementById('signup-form').addEventListener('submit', (e) => {
+            const btn = document.getElementById('signup-btn');
+            btn.innerHTML = '<span class="loading-spinner"></span> Creating Account...';
+            btn.disabled = true;
+        });
+
+        // Input focus lift
+        document.querySelectorAll('.form-input').forEach(input => {
+            input.addEventListener('focus', () => {
+                input.closest('.input-wrapper').style.transform = 'translateY(-1px)';
+            });
+            input.addEventListener('blur', () => {
+                input.closest('.input-wrapper').style.transform = 'translateY(0)';
+            });
+        });
+
+        document.addEventListener('DOMContentLoaded', () => {
+            createParticles();
+            document.getElementById('username').focus();
+        });
+    </script>
+</body>
+</html>
