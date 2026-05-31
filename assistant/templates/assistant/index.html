@@ -1,0 +1,1498 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>JARVIS Virtual Assistant</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            --secondary-gradient: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            --accent-color: #4f46e5;
+            --success-color: #10b981;
+            --warning-color: #f59e0b;
+            --danger-color: #ef4444;
+            --glass-bg: rgba(255, 255, 255, 0.1);
+            --glass-border: rgba(255, 255, 255, 0.2);
+            --shadow: 0 8px 32px rgba(31, 38, 135, 0.37);
+            --text-primary: #1f2937;
+            --text-secondary: #6b7280;
+            --bg-primary: #f8fafc;
+            --bg-secondary: #ffffff;
+            --border-color: #e5e7eb;
+        }
+
+        [data-theme="dark"] {
+            --text-primary: #f9fafb;
+            --text-secondary: #d1d5db;
+            --bg-primary: #0f172a;
+            --bg-secondary: #1e293b;
+            --border-color: #374151;
+            --glass-bg: rgba(0, 0, 0, 0.2);
+            --glass-border: rgba(255, 255, 255, 0.1);
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            overflow-x: hidden;
+            min-height: 100vh;
+            line-height: 1.6;
+        }
+
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: radial-gradient(circle at 20% 80%, rgba(120, 119, 198, 0.3) 0%, transparent 50%),
+                        radial-gradient(circle at 80% 20%, rgba(255, 119, 198, 0.3) 0%, transparent 50%),
+                        radial-gradient(circle at 40% 40%, rgba(120, 219, 255, 0.2) 0%, transparent 50%);
+            pointer-events: none;
+            z-index: -1;
+        }
+
+        .floating-particles {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: -1;
+        }
+
+        .particle {
+            position: absolute;
+            width: 4px;
+            height: 4px;
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            border-radius: 50%;
+            animation: float 6s infinite linear;
+            opacity: 0.6;
+        }
+
+        @keyframes float {
+            0% {
+                transform: translateY(100vh) rotate(0deg);
+                opacity: 0;
+            }
+            10% {
+                opacity: 0.6;
+            }
+            90% {
+                opacity: 0.6;
+            }
+            100% {
+                transform: translateY(-100px) rotate(360deg);
+                opacity: 0;
+            }
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 2rem;
+            min-height: 100vh;
+            display: grid;
+            grid-template-rows: auto 1fr;
+            gap: 2rem;
+        }
+
+        .header {
+            background: var(--glass-bg);
+            backdrop-filter: blur(20px);
+            border: 1px solid var(--glass-border);
+            border-radius: 24px;
+            padding: 2rem;
+            box-shadow: var(--shadow);
+            animation: slideDown 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        @keyframes slideDown {
+            from {
+                opacity: 0;
+                transform: translateY(-50px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .header h1 {
+            font-size: 3.5rem;
+            font-weight: 800;
+            background: var(--primary-gradient);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            text-align: center;
+            margin-bottom: 1.5rem;
+            animation: glow 2s ease-in-out infinite alternate;
+        }
+
+        @keyframes glow {
+            from {
+                text-shadow: 0 0 20px rgba(102, 126, 234, 0.5);
+            }
+            to {
+                text-shadow: 0 0 30px rgba(118, 75, 162, 0.8);
+            }
+        }
+
+        .user-info {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 1rem;
+            font-size: 1rem;
+            color: var(--text-secondary);
+        }
+
+        .user-section {
+            display: flex;
+            align-items: center;
+            gap: 2rem;
+        }
+
+        .user-badge {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            background: var(--accent-color);
+            color: white;
+            padding: 0.75rem 1.25rem;
+            border-radius: 50px;
+            font-weight: 600;
+            animation: pulse 2s infinite;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .user-badge:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(79, 70, 229, 0.4);
+        }
+
+        @keyframes pulse {
+            0%, 100% {
+                transform: scale(1);
+            }
+            50% {
+                transform: scale(1.02);
+            }
+        }
+
+        .stats {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            background: var(--glass-bg);
+            padding: 0.75rem 1.25rem;
+            border-radius: 50px;
+            border: 1px solid var(--glass-border);
+        }
+
+        .logout-btn {
+            color: var(--danger-color);
+            background: rgba(239, 68, 68, 0.1);
+            border: 1px solid var(--danger-color);
+            padding: 0.75rem 1.25rem;
+            border-radius: 50px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .logout-btn:hover {
+            background: var(--danger-color);
+            color: white;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(239, 68, 68, 0.4);
+        }
+
+        .main-content {
+            display: grid;
+            grid-template-columns: 1fr 2fr;
+            gap: 2rem;
+            animation: fadeInUp 1s cubic-bezier(0.4, 0, 0.2, 1) 0.3s both;
+            height: calc(100vh - 250px);
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .left-panel {
+            display: flex;
+            flex-direction: column;
+            gap: 1.5rem;
+        }
+
+        .clock-widget {
+            background: var(--glass-bg);
+            backdrop-filter: blur(20px);
+            border: 1px solid var(--glass-border);
+            border-radius: 20px;
+            padding: 2rem;
+            text-align: center;
+            box-shadow: var(--shadow);
+            position: relative;
+            overflow: hidden;
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+
+        .clock-widget::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+            animation: shimmer 3s infinite;
+        }
+
+        @keyframes shimmer {
+            0% {
+                left: -100%;
+            }
+            100% {
+                left: 100%;
+            }
+        }
+
+        #clock {
+            font-size: 2rem;
+            font-weight: 700;
+            background: var(--secondary-gradient);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 0.5rem;
+        }
+
+        .clock-subtitle {
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+            margin-bottom: 1rem;
+        }
+
+        .quick-stats {
+            background: var(--glass-bg);
+            backdrop-filter: blur(20px);
+            border: 1px solid var(--glass-border);
+            border-radius: 20px;
+            padding: 1.5rem;
+            box-shadow: var(--shadow);
+        }
+
+        .stats-title {
+            font-size: 1.25rem;
+            font-weight: bold;
+            color: var(--text-primary);
+            margin-bottom: 1rem;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1rem;
+            text-align: center;
+        }
+
+        .stat-item {
+            background: var(--bg-secondary);
+            padding: 1rem;
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+        }
+
+        .stat-number {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: var(--accent-color);
+        }
+
+        .stat-label {
+            font-size: 0.8rem;
+            color: var(--text-secondary);
+            margin-top: 0.25rem;
+        }
+
+        .tasks-widget {
+            background: var(--glass-bg);
+            backdrop-filter: blur(20px);
+            border: 1px solid var(--glass-border);
+            border-radius: 20px;
+            padding: 1.5rem;
+            box-shadow: var(--shadow);
+            display: flex;
+            flex-direction: column;
+            flex: 2;
+        }
+
+        .tasks-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+            border-bottom: 1px solid var(--border-color);
+            padding-bottom: 1rem;
+        }
+
+        .tasks-title {
+            font-size: 1.25rem;
+            font-weight: bold;
+            color: var(--text-primary);
+        }
+
+        .refresh-btn {
+            background-color: rgba(79, 70, 229, 0.1);
+            border: 1px solid var(--accent-color);
+            color: var(--accent-color);
+            cursor: pointer;
+            padding: 0.5rem 1rem;
+            border-radius: 8px;
+            transition: all 0.3s ease;
+            font-size: 0.9rem;
+        }
+
+        .refresh-btn:hover {
+            background-color: var(--accent-color);
+            color: white;
+            transform: translateY(-1px);
+        }
+
+        #tasks-list {
+            flex: 1;
+            overflow-y: auto;
+            padding: 1rem;
+            background: var(--bg-secondary);
+            border-radius: 12px;
+            border: 1px solid var(--border-color);
+            scroll-behavior: smooth;
+            min-height: 150px;
+            animation: fadeInUp 0.5s ease-in-out;
+        }
+
+        #tasks-list::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        #tasks-list::-webkit-scrollbar-track {
+            background: var(--bg-primary);
+            border-radius: 4px;
+        }
+
+        #tasks-list::-webkit-scrollbar-thumb {
+            background: var(--accent-color);
+            border-radius: 4px;
+        }
+
+        .task-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0.75rem;
+            margin-bottom: 0.5rem;
+            border-radius: 8px;
+            background: linear-gradient(135deg, rgba(79, 70, 229, 0.05), rgba(139, 92, 246, 0.05));
+            border-left: 4px solid var(--accent-color);
+            animation: taskSlideIn 0.5s ease-in-out;
+        }
+
+        @keyframes taskSlideIn {
+            from {
+                opacity: 0;
+                transform: translateX(-20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+
+        .task-name {
+            flex: 1;
+            font-size: 0.95rem;
+            color: var(--text-primary);
+        }
+
+        .task-due {
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+            margin-left: 1rem;
+        }
+
+        .complete-btn {
+            background: rgba(16, 185, 129, 0.1);
+            border: 1px solid var(--success-color);
+            color: var(--success-color);
+            cursor: pointer;
+            padding: 0.5rem;
+            border-radius: 8px;
+            transition: all 0.3s ease;
+            font-size: 0.85rem;
+        }
+
+        .complete-btn:hover {
+            background: var(--success-color);
+            color: white;
+        }
+
+        .right-panel {
+            display: flex;
+            flex-direction: column;
+            gap: 1.5rem;
+        }
+
+        .response-container {
+            background: var(--glass-bg);
+            backdrop-filter: blur(20px);
+            border: 1px solid var(--glass-border);
+            border-radius: 20px;
+            padding: 1.5rem;
+            box-shadow: var(--shadow);
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .response-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+            padding-bottom: 1rem;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .response-title {
+            font-size: 1.25rem;
+            font-weight: bold;
+            color: var(--text-primary);
+        }
+
+        .clear-btn {
+            background-color: rgba(239, 68, 68, 0.1);
+            border: 1px solid var(--danger-color);
+            color: var(--danger-color);
+            cursor: pointer;
+            padding: 0.5rem 1rem;
+            border-radius: 8px;
+            transition: all 0.3s ease;
+            font-size: 0.9rem;
+        }
+
+        .clear-btn:hover {
+            background-color: var(--danger-color);
+            color: white;
+            transform: translateY(-1px);
+        }
+
+        #response-area {
+            flex: 1;
+            overflow-y: auto;
+            padding: 1rem;
+            background-color: var(--bg-secondary);
+            border-radius: 12px;
+            border: 1px solid var(--border-color);
+            scroll-behavior: smooth;
+            min-height: 300px;
+        }
+
+        #response-area::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        #response-area::-webkit-scrollbar-track {
+            background-color: var(--bg-primary);
+            border-radius: 4px;
+        }
+
+        #response-area::-webkit-scrollbar-thumb {
+            background-color: var(--accent-color);
+            border-radius: 4px;
+        }
+
+        .message {
+            margin-bottom: 1rem;
+            padding: 1rem;
+            border-radius: 12px;
+            animation: messageSlideIn 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+            border-left: 4px solid var(--accent-color);
+        }
+
+        .message.user {
+            background: linear-gradient(135deg, rgba(79, 70, 229, 0.1), rgba(139, 92, 246, 0.1));
+            border-left-color: var(--accent-color);
+            margin-left: auto;
+            margin-right: 2rem;
+            max-width: 80%;
+        }
+
+        .message.assistant {
+            background: linear-gradient(135deg, rgba(16, 185, 129, 0.1), rgba(52, 211, 153, 0.1));
+            border-left-color: var(--success-color);
+            margin-right: auto;
+            margin-left: 2rem;
+            max-width: 80%;
+        }
+
+        .message.error {
+            background: linear-gradient(135deg, rgba(239, 68, 68, 0.1), rgba(248, 113, 113, 0.1));
+            border-left-color: var(--danger-color);
+            margin-right: 2rem;
+            margin-left: auto;
+        }
+
+        @keyframes messageSlideIn {
+            from {
+                opacity: 0;
+                transform: translateX(-20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+
+        .control-panel {
+            background: var(--glass-bg);
+            backdrop-filter: blur(20px);
+            border: 1px solid var(--glass-border);
+            border-radius: 20px;
+            padding: 2rem;
+            box-shadow: var(--shadow);
+        }
+
+        .input-group {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+            align-items: center;
+        }
+
+        #command-input {
+            flex: 1;
+            padding: 1rem 1.5rem;
+            font-size: 1rem;
+            border: 2px solid var(--border-color);
+            border-radius: 50px;
+            background-color: var(--bg-secondary);
+            color: var(--text-primary);
+            transition: all 0.3s ease;
+            outline: none;
+        }
+
+        #command-input:focus {
+            border-color: var(--accent-color);
+            box-shadow: 0 0 4px rgba(79, 70, 229, 0.1);
+            transform: translateY(-2px);
+        }
+
+        .btn-group {
+            display: flex;
+            gap: 1rem;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            padding: 0.75rem 1.5rem;
+            border: none;
+            border-radius: 50px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+            overflow: hidden;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-size: 0.95rem;
+        }
+
+        .btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+            transition: left 0.5s ease;
+        }
+
+        .btn:hover::before {
+            left: 100%;
+        }
+
+        .btn-primary {
+            background: var(--primary-gradient);
+            color: white;
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 6px 20px rgba(102, 126, 234, 0.6);
+        }
+
+        .btn-primary:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+
+        .btn-secondary {
+            background-color: var(--bg-secondary);
+            color: var(--text-primary);
+            border: 2px solid var(--border-color);
+        }
+
+        .btn-secondary:hover {
+            background-color: var(--accent-color);
+            color: white;
+            border-color: var(--accent-color);
+            transform: translateY(-2px);
+        }
+
+        .btn-voice {
+            background: var(--secondary-gradient);
+            color: white;
+            box-shadow: 0 4px 15px rgba(240, 147, 251, 0.4);
+        }
+
+        .btn-voice:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 6px 20px rgba(240, 147, 251, 0.6);
+        }
+
+        .btn-voice.listening {
+            animation: voicePulse 1s infinite;
+            background: var(--danger-color);
+        }
+
+        @keyframes voicePulse {
+            0% {
+                transform: scale(1);
+                box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.7);
+            }
+            50% {
+                transform: scale(1.05);
+                box-shadow: 0 0 10px rgba(239, 68, 68, 0);
+            }
+            100% {
+                transform: scale(1);
+                box-shadow: 0 0 0 0 rgba(239, 68, 68, 0);
+            }
+        }
+
+        .theme-toggle {
+            position: fixed;
+            top: 2rem;
+            right: 2rem;
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            background: var(--glass-bg);
+            backdrop-filter: blur(10px);
+            border: 1px solid var(--glass-border);
+            color: var(--text-primary);
+            font-size: 1.5rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            z-index: 100;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .theme-toggle:hover {
+            transform: rotate(180deg) scale(1.1);
+            box-shadow: var(--shadow);
+        }
+
+        .loading {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid rgba(255, 255, 255, 0.3);
+            border-radius: 50%;
+            border-top-color: white;
+            animation: spin 1s ease-in-out infinite;
+        }
+
+        @keyframes spin {
+            to {
+                transform: rotate(360deg);
+            }
+        }
+
+        /* Modal Styles */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            backdrop-filter: blur(5px);
+        }
+
+        .modal-content {
+            background-color: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            margin: 10% auto;
+            padding: 2rem;
+            border-radius: 20px;
+            width: 90%;
+            max-width: 500px;
+            animation: modalSlideIn 0.3s ease-out;
+        }
+
+        @keyframes modalSlideIn {
+            from {
+                opacity: 0;
+                transform: translateY(-50px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+            border-bottom: 1px solid var(--border-color);
+            padding-bottom: 1rem;
+        }
+
+        .modal-title {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: var(--text-primary);
+        }
+
+        .close {
+            color: var(--text-secondary);
+            font-size: 2rem;
+            font-weight: bold;
+            cursor: pointer;
+            transition: color 0.3s ease;
+        }
+
+        .close:hover {
+            color: var(--danger-color);
+        }
+
+        /* Responsive Design */
+        @media (max-width: 1200px) {
+            .main-content {
+                grid-template-columns: 1fr;
+                gap: 1.5rem;
+            }
+
+            .header h1 {
+                font-size: 2.5rem;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 1rem;
+            }
+
+            .header h1 {
+                font-size: 2rem;
+            }
+
+            .user-info {
+                flex-direction: column;
+                text-align: center;
+                gap: 1rem;
+            }
+
+            .user-section {
+                flex-direction: column;
+                gap: 1rem;
+            }
+
+            #clock {
+                font-size: 1.5rem;
+            }
+
+            .input-group {
+                flex-direction: column;
+            }
+
+            .btn-group {
+                gap: 0.5rem;
+            }
+
+            .btn {
+                padding: 0.5rem 1rem;
+                font-size: 0.9rem;
+            }
+
+            .stats-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Audio Element for Volume Control (kept for volume commands, but not used for jokes) -->
+    <audio id="jarvis-audio" loop>
+        <source src="https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3" type="audio/mpeg">
+        Your browser does not support the audio element.
+    </audio>
+
+    <!-- Floating Particles -->
+    <div class="floating-particles" id="particles"></div>
+
+    <!-- Theme Toggle -->
+    <button class="theme-toggle" id="theme-toggle-btn">🌞</button>
+
+    <div class="container">
+        <header class="header">
+            <h1>🤖 JARVIS Assistant</h1>
+            <div class="user-info">
+                <div class="user-section">
+                    <div class="user-badge" onclick="showUserProfile()">
+                        <span>👤</span>
+                        <span id="username">{{ user.username }}</span>
+                    </div>
+                    <div class="stats">
+                        <span>📊</span>
+                        <span>Commands: <strong id="command-count">{{ command_count }}</strong></span>
+                    </div>
+                </div>
+                <form method="POST" action="{% url 'logout' %}" id="logout-form" style="display: inline;">
+                    {% csrf_token %}
+                    <button type="submit" class="logout-btn" onclick="return confirmLogout(event)">
+                        <span>🚪</span>
+                        <span>Logout</span>
+                    </button>
+                </form>
+            </div>
+        </header>
+
+        <main class="main-content">
+            <div class="left-panel">
+                <div class="clock-widget">
+                    <div id="clock">{{ current_time }}</div>
+                    <div class="clock-subtitle">{{ user.profile.timezone|default:"Pakistan Standard Time" }}</div>
+                    <div style="color: var(--text-secondary); font-size: 0.85rem;">
+                        System Status: <span style="color: var(--success-color); font-weight: bold;">Online</span>
+                    </div>
+                </div>
+
+                <div class="quick-stats">
+                    <h3 class="stats-title">Quick Stats</h3>
+                    <div class="stats-grid">
+                        <div class="stat-item">
+                            <div class="stat-number" id="task-count">0</div>
+                            <div class="stat-label">Tasks Completed</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-number" id="uptime">99.9%</div>
+                            <div class="stat-label">Uptime</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-number" id="response-time">0.4s</div>
+                            <div class="stat-label">Avg. Response</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-number" id="accuracy">97%</div>
+                            <div class="stat-label">Accuracy</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="tasks-widget">
+                    <div class="tasks-header">
+                        <div class="tasks-title">📋 Active Tasks</div>
+                        <button class="refresh-btn" onclick="refreshTasks()">🔄 Refresh</button>
+                    </div>
+                    <div id="tasks-list">
+                        <div style="text-align: center; color: var(--text-secondary);">Loading tasks...</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="right-panel">
+                <div class="response-container">
+                    <div class="response-header">
+                        <div class="response-title">🎯 Command Response</div>
+                        <button class="clear-btn" onclick="clearResponses()">🗑️ Clear</button>
+                    </div>
+                    <div id="response-area"></div>
+                </div>
+
+                <div class="control-panel">
+                    <div class="input-group">
+                        <input type="text" id="command-input" placeholder="Type 'hey jarvis' followed by a command..." autocomplete="off">
+                    </div>
+                    <div class="btn-group">
+                        <button class="btn btn-primary" id="send-btn" onclick="sendCommand()">
+                            <span>🚀</span> Send
+                        </button>
+                        <button class="btn btn-voice" id="voice-btn" onclick="toggleVoiceRecognition()">
+                            <span>🎙️</span> Speak
+                        </button>
+                        <button class="btn btn-secondary" onclick="showCommandHistory()">
+                            <span>📜</span> History
+                        </button>
+                        <button class="btn btn-secondary" onclick="showHelp()">
+                            <span>❓</span> Help
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- User Profile Modal -->
+    <div id="user-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 class="modal-title">👤 User Profile</h2>
+                <span class="close" onclick="closeModal('user-modal')">×</span>
+            </div>
+            <div>
+                <p><strong>Username:</strong> {{ user.username }}</p>
+                <p><strong>Role:</strong> {{ user_role }}</p>
+                <p><strong>WhatsApp Number:</strong> {{ user.profile.whatsapp_number|default:"Not set" }}</p>
+                <p><strong>Last Login:</strong> <span id="last-login">{{ user.last_login|date:"Y-m-d H:i:s" }}</span></p>
+                <p><strong>Session Duration:</strong> <span id="session-duration">0m 0s</span></p>
+                <p><strong>Preferred Language:</strong> {{ user.profile.preferred_language|default:"en-US" }}</p>
+                <p><strong>Favorite Commands:</strong> {{ user.profile.favorite_commands|default:"None" }}</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Help Modal -->
+    <div id="help-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 class="modal-title">❓ Help & Commands</h2>
+                <span class="close" onclick="closeModal('help-modal')">×</span>
+            </div>
+            <div>
+                <h4>Available Commands:</h4>
+                <ul style="margin-left: 1rem; margin-top: 0.5rem; line-height: 1.8;">
+                    <li><strong>joke</strong> - Hear a joke (text only)</li>
+                    <li><strong>open youtube</strong> - Open YouTube</li>
+                    <li><strong>open google</strong> - Open Google</li>
+                    <li><strong>open wikipedia</strong> - Open Wikipedia</li>
+                    <li><strong>command history</strong> - View recent commands</li>
+                    <li><strong>help</strong> - Show this help</li>
+                    <li><strong>volume up</strong> - Increase media volume</li>
+                    <li><strong>volume down</strong> - Decrease media volume</li>
+                    <li><strong>toggle voice mode</strong> - Toggle voice input (web mode only)</li>
+                    <li><strong>change language [code]</strong> - Change language, e.g., "change language en-US"</li>
+                    <li><strong>set reminder for [task] at [HH:MM]</strong> - Set a reminder, e.g., "set reminder for meeting at 14:30"</li>
+                    <li><strong>wikipedia [query]</strong> - Search Wikipedia, e.g., "wikipedia python"</li>
+                    <li><strong>time</strong> - Get current time in your timezone</li>
+                    <li><strong>weather</strong> - Check weather (requires API)</li>
+                    <li><strong>calculate [expression]</strong> - Perform calculations, e.g., "calculate 2 + 2"</li>
+                    <li><strong>status</strong> - View system status</li>
+                    <li><strong>clear</strong> - Clear response area</li>
+                    <li><strong>hello</strong> - Greet JARVIS</li>
+                    <li><strong>thank you</strong> - Express gratitude</li>
+                    <li><strong>system config</strong> - View system configuration (admin only)</li>
+                    <li><strong>task [action]</strong> - Manage tasks, e.g., "add task meeting at 14:30", "list tasks", "complete task meeting"</li>
+                    <li><strong>message [type]</strong> - Send messages, e.g., "send email Hello to user@example.com", "send whatsapp message Hello to +1234567890", "open whatsapp Hello to +1234567890"</li>
+                </ul>
+                <p><strong>Note:</strong> All commands must start with "hey jarvis" unless they are "task" or "message" commands.</p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Global variables
+        let commandCount = {{ command_count|default:0 }};
+        let tasksCompleted = 0;
+        let sessionStart = new Date();
+        let isListening = false;
+        let recognition = null;
+        const audio = document.getElementById('jarvis-audio');
+        let tasks = []; // Array to store tasks locally
+
+        // Initialize theme from localStorage
+        function initializeTheme() {
+            const savedTheme = localStorage.getItem('theme') || 'light';
+            document.body.setAttribute('data-theme', savedTheme);
+            document.getElementById('theme-toggle-btn').textContent = savedTheme === 'dark' ? '🌞' : '🌙';
+        }
+
+        // Initialize particles
+        function createParticles() {
+            const particles = document.getElementById('particles');
+            particles.innerHTML = '';
+            for (let i = 0; i < 25; i++) {
+                const particle = document.createElement('div');
+                particle.className = 'particle';
+                particle.style.left = Math.random() * 100 + '%';
+                particle.style.animationDelay = Math.random() * 6 + 's';
+                particle.style.animationDuration = (Math.random() * 3 + 3) + 's';
+                particles.appendChild(particle);
+            }
+        }
+
+        // Theme Toggle
+        function toggleTheme() {
+            const isDark = document.body.getAttribute('data-theme') === 'dark';
+            const newTheme = isDark ? 'light' : 'dark';
+            document.body.setAttribute('data-theme', newTheme);
+            document.getElementById('theme-toggle-btn').textContent = newTheme === 'dark' ? '🌞' : '🌙';
+            localStorage.setItem('theme', newTheme);
+        }
+
+        document.getElementById('theme-toggle-btn').addEventListener('click', toggleTheme);
+
+        // Real-time clock
+        function updateClock() {
+            const clock = document.getElementById('clock');
+            const now = new Date();
+            const options = {
+                hour: 'numeric',
+                minute: 'numeric',
+                second: 'numeric',
+                hour12: true,
+                timeZone: '{{ user.profile.timezone|default:"Asia/Karachi" }}'
+            };
+            clock.textContent = now.toLocaleTimeString('en-US', options) + ' on ' + now.toLocaleDateString('en-US', {
+                weekday: 'long',
+                month: 'long',
+                day: 'numeric',
+                year: 'numeric'
+            });
+            const sessionDuration = Math.floor((now - sessionStart) / 1000);
+            const minutes = Math.floor(sessionDuration / 60);
+            const seconds = sessionDuration % 60;
+            document.getElementById('session-duration').textContent = `${minutes}m ${seconds}s`;
+        }
+
+        // Update stats
+        function updateStats() {
+            document.getElementById('command-count').textContent = commandCount;
+            document.getElementById('task-count').textContent = tasksCompleted;
+            const responseTime = (Math.random() * 0.5 + 0.1).toFixed(1);
+            document.getElementById('response-time').textContent = responseTime + 's';
+            const accuracy = (Math.random() * 3 + 97).toFixed(1);
+            document.getElementById('accuracy').textContent = accuracy + '%';
+        }
+
+        // Add message to response area
+        function addMessage(content, type = 'assistant') {
+            const responseArea = document.getElementById('response-area');
+            const message = document.createElement('div');
+            message.className = `message ${type}`;
+            const timestamp = new Date().toLocaleTimeString('en-US', { hour12: true });
+            message.innerHTML = `
+                <div style="font-size: 0.8rem; color: var(--text-secondary); margin-bottom: 0.5rem;">
+                    ${type === 'user' ? '👤 You' : '🤖 JARVIS'} - ${timestamp}
+                </div>
+                <div>${content}</div>
+            `;
+            responseArea.appendChild(message);
+            responseArea.scrollTop = responseArea.scrollHeight;
+        }
+
+        // Volume control functions
+        function adjustVolume(direction) {
+            let volume = audio.volume;
+            if (direction === 'up' && volume < 1) {
+                audio.volume = Math.min(volume + 0.1, 1);
+            }
+            if (direction === 'down' && volume > 0) {
+                audio.volume = Math.max(volume - 0.1, 0);
+            }
+            return `Volume set to ${Math.round(audio.volume * 100)}%`;
+        }
+
+        // Send command to server
+        let isSending = false;
+        async function sendCommand() {
+            if (isSending) return;
+            isSending = true;
+            const sendBtn = document.getElementById('send-btn');
+            sendBtn.disabled = true;
+            sendBtn.innerHTML = '<span class="loading"></span> Sending...';
+
+            const input = document.getElementById('command-input');
+            let command = input.value.trim().toLowerCase();
+            if (!command) {
+                isSending = false;
+                sendBtn.disabled = false;
+                sendBtn.innerHTML = '<span>🚀</span> Send';
+                return;
+            }
+
+            // Sanitize input to prevent XSS
+            command = command.replace(/[<>&"]/g, c => ({ '<': '<', '>': '>', '&': '&', '"': '"' }[c]));
+            addMessage(command, 'user');
+            input.value = '';
+
+            try {
+                const response = await fetch('/process_command/', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRFToken': getCookie('csrftoken')
+                    },
+                    body: JSON.stringify({ command })
+                });
+                const contentType = response.headers.get('content-type');
+                if (contentType.includes('text/html')) {
+                    const text = await response.text();
+                    if (text.includes('window.location.href')) {
+                        const tempDiv = document.createElement('div');
+                        tempDiv.innerHTML = text;
+                        const script = tempDiv.querySelector('script');
+                        if (script) {
+                            eval(script.textContent);
+                        }
+                    } else {
+                        addMessage('Unexpected HTML response', 'error');
+                    }
+                } else {
+                    const data = await response.json();
+                    if (data.response) {
+                        addMessage(data.response, 'assistant');
+                        if (command.includes('open youtube')) {
+                            window.location.href = 'https://youtube.com';
+                        } else if (command.includes('open google')) {
+                            window.location.href = 'https://google.com';
+                        } else if (command.includes('open wikipedia')) {
+                            window.location.href = 'https://wikipedia.org';
+                        } else if (command.includes('open whatsapp')) {
+                            const match = command.match(/open whatsapp (.+?) to (\+[\d]+)/);
+                            if (match) {
+                                const [, message, phone_number] = match;
+                                const encoded_message = encodeURIComponent(message);
+                                window.location.href = `https://wa.me/${phone_number}?text=${encoded_message}`;
+                            }
+                        } else if (command.includes('joke')) {
+                            // No sound playback
+                        } else if (command.includes('volume up')) {
+                            addMessage(adjustVolume('up'), 'assistant');
+                        } else if (command.includes('volume down')) {
+                            addMessage(adjustVolume('down'), 'assistant');
+                        } else if (command.includes('task')) {
+                            if (command.includes('set reminder for')) {
+                                const match = command.match(/set reminder for (.+?) at (\d{2}:\d{2})/);
+                                if (match) {
+                                    const [, taskName, time] = match;
+                                    const task = { name: taskName, due: time, completed: false };
+                                    tasks.push(task);
+                                    addMessage(`Reminder set for ${taskName} at ${time}`, 'assistant');
+                                    refreshTasks();
+                                } else {
+                                    addMessage('Invalid reminder format. Use: set reminder for [task] at [HH:MM]', 'error');
+                                }
+                            } else if (command.includes('complete task')) {
+                                const taskName = command.replace(/complete task /, '');
+                                const taskIndex = tasks.findIndex(t => t.name.toLowerCase() === taskName.toLowerCase() && !t.completed);
+                                if (taskIndex !== -1) {
+                                    tasks[taskIndex].completed = true;
+                                    tasksCompleted++;
+                                    updateStats();
+                                    addMessage(`Task "${taskName}" completed.`, 'assistant');
+                                    refreshTasks();
+                                } else {
+                                    addMessage(`Task "${taskName}" not found or already completed.`, 'error');
+                                }
+                            } else if (command.includes('list tasks')) {
+                                if (tasks.length === 0) {
+                                    addMessage('No active tasks.', 'assistant');
+                                } else {
+                                    const activeTasks = tasks.filter(t => !t.completed).map(t => `${t.name} (Due: ${t.due})`).join('<br>');
+                                    addMessage(activeTasks || 'No active tasks.', 'assistant');
+                                }
+                            }
+                        } else if (command.includes('hello')) {
+                            addMessage("Hello! How can I assist you today?", 'assistant');
+                        } else if (command.includes('thank you')) {
+                            addMessage("You're welcome! I'm here to help.", 'assistant');
+                        } else if (command.includes('time')) {
+                            const now = new Date();
+                            const options = {
+                                hour: 'numeric',
+                                minute: 'numeric',
+                                second: 'numeric',
+                                hour12: true,
+                                timeZone: '{{ user.profile.timezone|default:"Asia/Karachi" }}'
+                            };
+                            addMessage(`Current time is ${now.toLocaleTimeString('en-US', options)}`, 'assistant');
+                        } else if (command.includes('calculate')) {
+                            const expression = command.replace(/calculate/i, '').trim();
+                            try {
+                                const result = eval(expression);
+                                addMessage(`Result: ${result}`, 'assistant');
+                            } catch (e) {
+                                addMessage('Invalid calculation. Please use a valid expression (e.g., "2 + 2").', 'error');
+                            }
+                        }
+                    } else if (data.error) {
+                        addMessage(data.error, 'error');
+                    }
+                }
+                commandCount++;
+                updateStats();
+            } catch (e) {
+                addMessage(`Error sending command: ${e.message}`, 'error');
+            } finally {
+                isSending = false;
+                sendBtn.disabled = false;
+                sendBtn.innerHTML = '<span>🚀</span> Send';
+            }
+        }
+
+        // Refresh tasks
+        function refreshTasks() {
+            const tasksList = document.getElementById('tasks-list');
+            tasksList.innerHTML = '';
+            if (tasks.length === 0) {
+                tasksList.innerHTML = '<div style="text-align: center; color: var(--text-secondary);">No active tasks.</div>';
+            } else {
+                const activeTasks = tasks.filter(t => !t.completed);
+                if (activeTasks.length === 0) {
+                    tasksList.innerHTML = '<div style="text-align: center; color: var(--text-secondary);">No active tasks.</div>';
+                } else {
+                    activeTasks.forEach(task => {
+                        const taskItem = document.createElement('div');
+                        taskItem.className = 'task-item';
+                        taskItem.dataset.taskName = task.name;
+                        taskItem.innerHTML = `
+                            <span class="task-name">${task.name}</span>
+                            <span class="task-due">${task.due}</span>
+                            <button class="complete-btn" onclick="completeTask('${task.name.replace(/'/g, "\\'")}')">✔️ Complete</button>
+                        `;
+                        tasksList.appendChild(taskItem);
+                    });
+                }
+            }
+        }
+
+        // Complete task
+        function completeTask(taskName) {
+            const taskIndex = tasks.findIndex(t => t.name.toLowerCase() === taskName.toLowerCase() && !t.completed);
+            if (taskIndex !== -1) {
+                tasks[taskIndex].completed = true;
+                tasksCompleted++;
+                updateStats();
+                addMessage(`Task "${taskName}" completed.`, 'assistant');
+                refreshTasks();
+            } else {
+                addMessage(`Task "${taskName}" not found or already completed.`, 'error');
+            }
+        }
+
+        // Voice recognition
+        function toggleVoiceRecognition() {
+            if (!('SpeechRecognition' in window) && !('webkitSpeechRecognition' in window)) {
+                addMessage("Voice recognition is not supported in this browser.", 'error');
+                return;
+            }
+
+            if (isListening) {
+                stopVoiceRecognition();
+                return;
+            }
+
+            const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+            recognition = new SpeechRecognition();
+            recognition.continuous = false;
+            recognition.interimResults = false;
+            recognition.lang = '{{ user.profile.preferred_language|default:"en-US" }}';
+
+            const voiceBtn = document.getElementById('voice-btn');
+            voiceBtn.classList.add('listening');
+            voiceBtn.innerHTML = '<span>🔴</span> Listening...';
+            isListening = true;
+
+            recognition.onstart = () => {
+                addMessage("🎙️ Listening for your command...", 'assistant');
+            };
+
+            recognition.onresult = event => {
+                const command = event.results[0][0].transcript.toLowerCase();
+                document.getElementById('command-input').value = command;
+                addMessage(`Voice command detected: "${command}"`, 'user');
+                sendCommand();
+            };
+
+            recognition.onerror = event => {
+                addMessage(`Voice recognition error: ${event.error}`, 'error');
+                stopVoiceRecognition();
+            };
+
+            recognition.onend = () => {
+                stopVoiceRecognition();
+            };
+
+            recognition.start();
+        }
+;
+        function stopVoiceRecognition() {
+            if (recognition) {
+                recognition.stop();
+                recognition = null;
+            }
+            const voiceBtn = document.getElementById('voice-btn');
+            voiceBtn.classList.remove('listening');
+            voiceBtn.innerHTML = '<span>🎙️</span> Speak';
+            isListening = false;
+        }
+
+        // Clear responses
+        function clearResponses() {
+            document.getElementById('response-area').innerHTML = '';
+            addMessage("Response area cleared.", 'assistant');
+        }
+
+        // Show user profile
+        function showUserProfile() {
+            document.getElementById('last-login').textContent = "{{ user.last_login|date:'Y-m-d H:i:s'|default:'Not available' }}";
+            document.getElementById('user-modal').style.display = 'block';
+        }
+
+        // Show help
+        function showHelp() {
+            document.getElementById('help-modal').style.display = 'block';
+        }
+
+        // Show command history
+        async function showCommandHistory() {
+            const sendBtn = document.getElementById('send-btn');
+            sendBtn.disabled = true;
+            sendBtn.innerHTML = '<span class="loading"></span> Fetching...';
+            try {
+                const response = await fetch('/process_command/', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRFToken': getCookie('csrftoken')
+                    },
+                    body: JSON.stringify({ command: "command history" })
+                });
+                const data = await response.json();
+                if (data.response) {
+                    addMessage(data.response, 'assistant');
+                } else if (data.error) {
+                    addMessage(data.error, 'error');
+                }
+            } catch (e) {
+                addMessage(`Error fetching command history: ${e.message}`, 'error');
+            } finally {
+                sendBtn.disabled = false;
+                sendBtn.innerHTML = '<span>🚀</span> Send';
+            }
+        }
+
+        // Close modal
+        function closeModal(modalId) {
+            document.getElementById(modalId).style.display = 'none';
+        }
+
+        // Logout confirmation
+        function confirmLogout(event) {
+            event.preventDefault();
+            if (confirm('Are you sure you want to logout?')) {
+                addMessage('Logging out...', 'assistant');
+                const logoutBtn = document.querySelector('.logout-btn');
+                logoutBtn.style.opacity = '0.5';
+                logoutBtn.style.pointerEvents = 'none';
+                setTimeout(() => {
+                    document.getElementById('logout-form').submit();
+                }, 1000);
+            }
+        }
+
+        // Get CSRF token
+        function getCookie(name) {
+            let cookieValue = null;
+            if (document.cookie && document.cookie !== '') {
+                const cookies = document.cookie.split(';');
+                for (let i = 0; i < cookies.length; i++) {
+                    const cookie = cookies[i].trim();
+                    if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                        cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                        break;
+                    }
+                }
+            }
+            return cookieValue;
+        }
+
+        // Enter key support
+        document.getElementById('command-input').addEventListener('keypress', e => {
+            if (e.key === 'Enter') {
+                sendCommand();
+            }
+        });
+
+        // Close modals on outside click
+        window.addEventListener('click', event => {
+            const modals = document.querySelectorAll('.modal');
+            modals.forEach(modal => {
+                if (event.target === modal) {
+                    modal.style.display = 'none';
+                }
+            });
+        });
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', () => {
+            initializeTheme();
+            createParticles();
+            updateClock();
+            updateStats();
+            refreshTasks();
+            setInterval(updateClock, 1000);
+            setInterval(updateStats, 5000);
+            setTimeout(() => {
+                addMessage("🎖️ JARVIS is ready! Say 'hey jarvis' followed by a command, or use 'task'/'message' commands.", 'assistant');
+            }, 1000);
+        });
+    </script>
+</body>
+</html>

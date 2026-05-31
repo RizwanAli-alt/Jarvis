@@ -1,0 +1,8 @@
+{
+    "wake_word": "hey jarvis",
+    "language": "en-US",
+    "urls": {
+        "youtube": "https://www.youtube.com",
+        "google": "https://www.google.com"
+    }
+}
